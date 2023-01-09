@@ -24,4 +24,37 @@ Also there are Stock control requirements, for example, he wants to be able to k
 And finally, there is Staff data. Ben wants to know which staff members are working when, based on the staff salary information, how much each pizza costs (ingredients, chef, delivery).
 
 So after listening carefully about what the client (Ben) wants, the final relational database looks something like this:
+
 ![image](https://user-images.githubusercontent.com/39070251/210882667-8c71d005-5a79-4f45-8f79-5953b1855461.png)
+
+And after creating the tables in MySQL and importing the sample data, the next to-do task is create the fist dashboard.
+For this, after chatting with Ben, the requirements are the following:
+- Total orders
+- Total Sales
+- Total items
+- Average order Value
+- Sales by category
+- Top selling items
+- Orders by hour
+- Sales by hour
+- Orders by address
+- Orders by delivery/pick up
+
+So the SQL query to gather this information its like this.
+´´´ sql
+SELECT
+o.order_id,
+i.item_price,
+o.quantity,
+i.item_cat,
+o.created_at,
+a.delivery_city,
+a.delivery_address1,
+a.delivery_address2,
+a.delivery_city,
+a.delivery_zipcode,
+o.delivery
+from orders o 
+left join item i on i.item_id = o.item_id
+left join address a on a.add_id = o.add_id
+´´´
