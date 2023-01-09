@@ -41,7 +41,7 @@ For this, after chatting with Ben, the requirements are the following:
 - Orders by delivery/pick up
 
 So the SQL query to gather this information its like this.
-´´´ sql
+```sql
 SELECT
 o.order_id,
 i.item_price,
@@ -57,4 +57,85 @@ o.delivery
 from orders o 
 left join item i on i.item_id = o.item_id
 left join address a on a.add_id = o.add_id
-´´´
+```
+
+Output:
+![image](https://user-images.githubusercontent.com/39070251/211308823-21462524-8487-4e45-9b9f-e5239f2b69c3.png)
+
+This is all the information that we will need for the first dashboard, now lets get the info for the second one.
+So, the aim of this dashboard is for inventory management, so due this in mind, there are 4 main focus points:
+- Total quantity by ingredient
+- Total cost of ingredients
+- Calculated cost of pizza
+- Percentage stock remaining by ingredient.
+
+First, lets calculate the total quantity by ingredient.
+```sql
+SELECT
+o.item_id,
+i.sku,
+i.item_name,
+r.ing_id,
+ing.ing_name,
+r.quantity as recipe_quantity,
+sum(o.quantity) as order_quantity
+FROM 
+	orders o
+	left join item i on o.item_id = i.item_id
+	left join recipe r on i.sku = r.recipe_id
+	left join ingredient ing on ing.ing_id = r.ing_id
+group by
+ o.item_id,
+ i.sku,
+ i.item_name,
+ r.ing_id, 
+ ing.ing_name,
+ r.quantity
+```
+
+Output:
+
+![image](https://user-images.githubusercontent.com/39070251/211321141-afa34ab7-3d36-4339-9a2f-ee427b525437.png)
+
+Now, lets calculate the total cost of ingredients.
+With the previous query, we have all the info that we need, but, because we need to calculate de cost of each ingredient, we cannot use directly the column order_quantity, because its an aggregate column, so we use a subquery format an name it S1.
+```sql
+SELECT 
+S1.item_name,
+S1.ing_name,
+S1.recipe_quantity,
+S1.order_quantity,
+S1.order_quantity*S1.recipe_quantity as ordered_weight,
+S1.ing_price/S1.ing_weight as unit_cost,
+(S1.order_quantity*S1.recipe_quantity)*(S1.ing_price/S1.ing_weight) as ingredient_cost
+FROM (SELECT
+o.item_id,
+i.sku,
+i.item_name,
+r.ing_id,
+ing.ing_name,
+ing.ing_price,
+ing.ing_weight,
+r.quantity as recipe_quantity,
+sum(o.quantity) as order_quantity
+FROM 
+	orders o
+	left join item i on o.item_id = i.item_id
+	left join recipe r on i.sku = r.recipe_id
+	left join ingredient ing on ing.ing_id = r.ing_id
+group by
+ o.item_id,
+ i.sku,
+ i.item_name,
+ r.ing_id, 
+ ing.ing_name,
+ r.quantity,
+ ing.ing_weight) S1
+ ```
+ 
+ Output:
+ 
+ ![image](https://user-images.githubusercontent.com/39070251/211331799-01d26a48-582a-4bf4-b265-fe775d492166.png)
+
+
+
